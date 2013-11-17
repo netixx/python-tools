@@ -8,9 +8,9 @@ __all__ = ['KeepFreePercentageBanLongUsersStrategy',
            'ApplicationState',
            'UserEvent']
 
-from strategy import ManagementStrategy
+from .strategy import ManagementStrategy
 from datetime import datetime
-from monitor import FlexLmManager
+from .monitor import FlexLmManager
 import copy
 
 class ApplicationState(object):

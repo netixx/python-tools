@@ -12,7 +12,7 @@ __all__ = ['TsvReader', 'CsvReader', 'StructuredReader']
 
 from csv import DictReader
 import csv
-from definitions import ObjectContainer, TupleContainer, ListContainer
+from .definitions import ObjectContainer, TupleContainer, ListContainer
 
 class StructuredReader(object):
     def __init__(self, filename, container = None, dialect = 'simplecsv'):

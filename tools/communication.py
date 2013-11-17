@@ -8,7 +8,7 @@ Currently implemented channels are mail, ...
 __all__ = ['Mailer']
 
 from threading import Thread
-from Queue import Queue
+from queue import Queue
 from email.message import Message
 from smtplib import SMTP, SMTPServerDisconnected
 import socket

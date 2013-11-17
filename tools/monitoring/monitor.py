@@ -8,12 +8,12 @@ __all__ = ['FlexLmManager']
 
 import os
 import re
-from tools.system import Console
+from system import Console
 import logging
 from datetime import datetime
 import time
 from threading import Thread, Event, RLock
-from containers import ServerData
+from .containers import ServerData
 
 
 class FlexLmManager(object):

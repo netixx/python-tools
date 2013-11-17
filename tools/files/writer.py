@@ -5,7 +5,7 @@ Module to write data to files in a orderly fashion
 
 from csv import DictWriter
 import csv
-from definitions import ObjectWriter, TupleWriter, ListWriter
+from .definitions import ObjectWriter, TupleWriter, ListWriter
 
 __all__ = ['StructuredWriter', 'TsvWriter', 'CsvWriter']
 
