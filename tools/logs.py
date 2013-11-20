@@ -54,7 +54,6 @@ def addDailyRotatingHandler(filename, logsToKeep = 7, logger = getLogger(), form
                                                     utc = True)
     fileLog.setFormatter(formatter)
     fileLog.setLevel(logging.INFO)
-    logger.setLevel(logging.INFO)
     logger.addHandler(fileLog)
 
 def addBasicLog(filename, logLevel = logging.INFO, logger = getLogger(), formatter = getDefaultFormatter()):
