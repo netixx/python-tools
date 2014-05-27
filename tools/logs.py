@@ -43,7 +43,7 @@ def addStdoutAndStdErr(outLevel = logging.INFO, logger = getLogger(), formatter 
     stderrs.setFormatter(formatter)
         
         
-def addDailyRotatingHandler(filename, logsToKeep = 7, logger = getLogger(), formatter = getDefaultFormatter()):
+def addDailyRotatingHandler(filename, logsToKeep = 7, logger = getLogger(), formatter = getDefaultFormatter(), logLevel = logging.INFO):
     """Create a new file each day and delete files older that logToKeep days"""
     fileLog = logging.handlers.TimedRotatingFileHandler(filename = filename,
                                                     when = 'D',
@@ -53,7 +53,7 @@ def addDailyRotatingHandler(filename, logsToKeep = 7, logger = getLogger(), form
                                                     delay = False,
                                                     utc = True)
     fileLog.setFormatter(formatter)
-    fileLog.setLevel(logging.INFO)
+    fileLog.setLevel(logLevel)
     logger.addHandler(fileLog)
 
 def addBasicLog(filename, logLevel = logging.INFO, logger = getLogger(), formatter = getDefaultFormatter()):
