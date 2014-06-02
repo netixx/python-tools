@@ -15,7 +15,6 @@ import csv
 from .definitions import ObjectContainer, TupleContainer, ListContainer
 
 
-
 class StructuredReader(object):
     def __init__(self, filename, container = None, dialect = 'simplecsv'):
         self._container = None
