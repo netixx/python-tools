@@ -1,12 +1,13 @@
-'''Module implementing multithreaded architechtures for faster executions
+"""Module implementing multithreaded architectures for faster executions
 (see example)
 
-'''
+"""
 
 __all__ = ['ParallelActions', 'Action']
 
 from threading import Thread
 from collections import deque
+
 
 class ParallelActions(object):
     """Execute multiple action in parallel on a number of threads
@@ -15,15 +16,15 @@ class ParallelActions(object):
     
     
     """
-    workers ={}
-    
+    workers = {}
+
     def __init__(self, nthreads = 2):
         self.actions = deque()
         self.nthreads = nthreads
         self.threads = None
         self.working = False
 
-    def addAction(self, action, args = (), kwargs = {}):
+    def addAction(self, action, args = None, kwargs = None):
         """Add a action to the queue of actions to do
         
         action - a callable action
@@ -37,7 +38,7 @@ class ParallelActions(object):
             self.actions.append(action)
         else:
             self.actions.append(Action(action, args, kwargs))
-        
+
     def execute(self):
         """Start working on the tasks
         Once started, no more tasks can be added
@@ -46,7 +47,7 @@ class ParallelActions(object):
         self.threads = [self.Worker(self.actions, i, self) for i in range(1, self.nthreads + 1)]
         for th in self.threads:
             th.start()
-#             self.actions.put(None)
+        # self.actions.put(None)
 
         for th in self.threads:
             th.join()
@@ -70,7 +71,7 @@ class ParallelActions(object):
             Thread.__init__(self, name = "Worker Thread - %s" % num)
             self.actions = actions
             self.parent = parent
-            
+
         def run(self):
             while self.parent.working:
                 try:
@@ -78,10 +79,14 @@ class ParallelActions(object):
                 except IndexError:
                     break
 
+
 class Action(object):
     """An action to perform"""
-    def __init__(self, action, args = (), kwargs = {}):
+
+    def __init__(self, action, args = None, kwargs = None):
         assert callable(action), "target must be callable"
+        if args is None : args = []
+        if kwargs is None : kwargs = {}
         self.action = action
         self.args = args
         self.kwargs = kwargs
@@ -91,8 +96,8 @@ class Action(object):
         self.result = self.action(*self.args, **self.kwargs)
 
     def __call__(self):
-        self.result = self.execute()
-        
+        self.execute()
+
     def getResult(self):
         return self.result
 

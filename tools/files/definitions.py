@@ -1,11 +1,12 @@
-'''
+"""
 Definitions for reader and writer modules
 
-'''
+"""
 import csv
 
 __all__ = ['ListContainer', 'TupleContainer', 'ObjectContainer', 'FetchableObject',
            'ListWriter', 'TupleWriter', 'ObjectWriter', 'WriteableObject']
+
 
 class SimpleCsv(csv.excel):
     """Describe the usual properties of CSV files."""
@@ -15,7 +16,10 @@ class SimpleCsv(csv.excel):
     skipinitialspace = False
     lineterminator = '\r\n'
     quoting = csv.QUOTE_MINIMAL
+
+
 csv.register_dialect("simplecsv", SimpleCsv)
+
 
 class SimpleTsv(SimpleCsv):
     """Simple tsv file"""
@@ -23,13 +27,18 @@ class SimpleTsv(SimpleCsv):
     doublequote = True
     quotechar = None
     quoting = csv.QUOTE_NONE
+
+
 csv.register_dialect("simpletsv", SimpleTsv)
+
 
 class Writer(object):
     """Datas for writing datas to files"""
-    def __init__(self, columns = []):
+
+    def __init__(self, columns = None):
+        if columns is None: columns = []
         self._columns = columns
-        
+
     @property
     def columns(self):
         return self._columns
@@ -37,12 +46,15 @@ class Writer(object):
     def write(self, row):
         return row
 
+
 class ObjectWriter(Writer):
     """Write object to files"""
-    def __init__(self, objectClass, mappings = {}):
+
+    def __init__(self, objectClass, mappings = None):
+        if mappings is None : mappings = {}
         assert issubclass(objectClass, WriteableObject), "Object must implement FetchableObject"
-#         if not objectClass().check(mappings):
-#             raise Exception("Object does not have the required methods")
+        # if not objectClass().check(mappings):
+        #             raise Exception("Object does not have the required methods")
         self._objectClass = objectClass
         self._mappings = mappings
         Writer.__init__(self, self.mappings.values())
@@ -55,22 +67,26 @@ class ObjectWriter(Writer):
         ret = {}
         for method, column in self.mappings.iteritems():
             ret[column] = getattr(obj, method)
-            
+
         return ret
-        
-    
+
+
 class TupleWriter(Writer):
     """Write a tuple to a file"""
+
     def write(self, data):
         return list(data)
+
 
 class ListWriter(Writer):
     """Write list to file"""
     pass
 
+
 class WriteableObject(object):
     """Control class for objects to write"""
     pass
+
 
 class FetchableObject(object):
     """An object whose values will be inserted while parsing"""
@@ -85,18 +101,21 @@ class FetchableObject(object):
 
         return True
 
+
 class Container(object):
     pass
+
 
 class ObjectContainer(Container):
     """Fetch results into an object"""
 
-    def __init__(self, objectClass, mappings = {}):
+    def __init__(self, objectClass, mappings = None):
         """Create a new container
         objectClass - a class subclassing FetchableObject
         mappings - data columns to method mappings dict : methodName : [args]
         
         """
+        if mappings is None : mappings = {}
         assert issubclass(objectClass, FetchableObject), "Object must implement FetchableObject"
         if not objectClass().check(mappings):
             raise Exception("Object does not have the required methods")
@@ -122,6 +141,7 @@ class ObjectContainer(Container):
                 raise Exception("Object mappings are wrong, column names not found in file")
         return obj
 
+
 class ConstrainedContainer(Container):
     """Apply constraints on given rows"""
 
@@ -144,13 +164,17 @@ class ConstrainedContainer(Container):
 
         return datas
 
+
 class ListContainer(ConstrainedContainer):
     """Fetch data into a list"""
+
     def fetch(self, data):
         return ConstrainedContainer.fetch(self, data)
 
+
 class TupleContainer(ConstrainedContainer):
     """Fetch Data into a tuple"""
+
     def fetch(self, data):
         return tuple(ConstrainedContainer.fetch(self, data))
 

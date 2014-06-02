@@ -8,10 +8,12 @@ __all__ = ['KeepFreePercentageBanLongUsersStrategy',
            'ApplicationState',
            'UserEvent']
 
-from strategy import ManagementStrategy
 from datetime import datetime
-from monitor import FlexLmManager
 import copy
+
+from strategy import ManagementStrategy
+from monitor import FlexLmManager
+
 
 class ApplicationState(object):
     """States of the Application"""
@@ -19,11 +21,13 @@ class ApplicationState(object):
     FREE = 1
     DENY = 2
 
+
 class UserEvent(object):
     """An event destined to a DoorsUser"""
     WARN = 'warn'
     BAN = 'ban'
     UNBAN = 'unban'
+
 
 class KeepFreePercentageBanLongUsersStrategy(ManagementStrategy):
     """Strategies that tries to keep a given percentage of free licenses available on server
@@ -36,6 +40,7 @@ class KeepFreePercentageBanLongUsersStrategy(ManagementStrategy):
     setWhen should be called before applying the strategy otherwise datetime.now() is used.
     
     """
+
     def __init__(self, keepStateTimeout, minFreePercentage, maxFreePercentage = 1):
         """Creates a new instance of the strategy
         keepStateTimeout - duration (in seconds) between state change
@@ -84,7 +89,7 @@ class KeepFreePercentageBanLongUsersStrategy(ManagementStrategy):
 
         enforcer.logger.debug("FlexLmManager performed: Current state = %s, next state = %s", self.currentState, self.idealState)
 
-        if self.switchTime == None or (self.when - self.switchTime).total_seconds() > self.keepStateTimeout:
+        if self.switchTime is None or (self.when - self.switchTime).total_seconds() > self.keepStateTimeout:
             # in case we have been in DENY mode for more than switch Time, allow the previously bannedUsers
             if self.currentState == ApplicationState.DENY and len(self.bannedUsers) > 0:
                 self.unBanUsers(enforcer)
@@ -104,12 +109,13 @@ class KeepFreePercentageBanLongUsersStrategy(ManagementStrategy):
                         numberOfUserToBan = int((self.maxFreePercentage - freePercentage) * totalUser)
                         if numberOfUserToBan <= 0:
                             enforcer.logger.warning("The maximum free threshold is not high enough, no user will be banned.")
-                        else :
+                        else:
                             # in case we don't have enough users to ban
                             numberOfUserToBan = min(numberOfUserToBan, len(self.bannedUsers))
                             self.bannedUsers = self.bannedUsers[:numberOfUserToBan]
                             enforcer.getService('notifyEvent').execute(self.bannedUsers, UserEvent.BAN)
-                            enforcer.getService('writeFlexOptFile').execute(FlexLmManager.generateDenyGroup([oUser.getUid() for oUser in self.bannedUsers]))
+                            enforcer.getService('writeFlexOptFile').execute(
+                                FlexLmManager.generateDenyGroup([oUser.getUid() for oUser in self.bannedUsers]))
                     else:
                         enforcer.logger.warning("License server is nearly full, but no user can be banned...")
 
@@ -118,7 +124,7 @@ class KeepFreePercentageBanLongUsersStrategy(ManagementStrategy):
                     enforcer.logger.info("Switched to  ApplicationState.FREE")
 
                 if not enforcer.getService('scheduleServerReloadOnce').execute():
-                    enforcer.logger.info("Server restart already scheduled");
+                    enforcer.logger.info("Server restart already scheduled")
 
                 self.currentState = self.idealState
                 self.switchTime = self.when
@@ -127,14 +133,16 @@ class KeepFreePercentageBanLongUsersStrategy(ManagementStrategy):
                     cs = "DENY"
                 elif self.currentState == ApplicationState.FREE:
                     cs = "FREE"
+                else:
+                    cs = "None"
                 enforcer.logger.info("Keep at state '%s', last switch at %s", cs, self.switchTime)
-            # end if self.switchTime
+                # end if self.switchTime
         else:
             enforcer.logger.info("Switch not permitted yet, keep at state %s (last switch at %s)", self.currentState, self.switchTime)
 
     def cleanup(self, enforcer):
         enforcer.getService('writeFlexOptFile').execute()
-        if len(self.bannedUsers) > 0 :
+        if len(self.bannedUsers) > 0:
             enforcer.getService('notifyEvent').execute(self.bannedUsers, UserEvent.UNBAN)
         self.bannedUsers = []
         if self.idealState != ApplicationState.FREE:
@@ -153,6 +161,7 @@ class KeepFreePercentageBanLongUsersStrategy(ManagementStrategy):
 
     def getCurrentIdealState(self):
         return self.idealState
+
 
 class WarnUsersBeforeMaxUsageTimeStrategy(ManagementStrategy):
     """Strategy that warns users that have been logged on for too long when the number of free
@@ -176,5 +185,5 @@ class WarnUsersBeforeMaxUsageTimeStrategy(ManagementStrategy):
             if len(toWarnUsers) > 0:
                 enforcer.getService('notifyEvent').execute(toWarnUsers, UserEvent.WARN)
                 self.warnedUsersNum += len(toWarnUsers)
-            else :
+            else:
                 enforcer.logger.warn("Warning threshold reached but no user needs warning")

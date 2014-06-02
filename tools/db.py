@@ -1,15 +1,17 @@
-'''Module regrouping diverse db interface
+"""Module regrouping diverse db interface
 
 Currently implemented : oracle
 
-'''
+"""
 
 __all__ = ['Oracle']
 
-import cx_Oracle
 import logging
 from collections import deque
 import time
+
+import cx_Oracle
+
 
 class Oracle(object):
     """Object that does query on a oracle database
@@ -43,7 +45,7 @@ class Oracle(object):
 
     def executeAll(self):
         """Executes all actions in the buffer (self.actions) in FIFO order"""
-        try :
+        try:
             self.__connect()
             # execute db actions
             for method in self.actions:
@@ -52,10 +54,10 @@ class Oracle(object):
             self.logger.error("Could not contact the database : %s", e)
         finally:
             self.__close()
-    
+
     def executeOne(self):
         """Executes the first action of the queue (FIFO)"""
-        try :
+        try:
             self.__connect()
             # insert monthly update of license usage
             self.__execute(self.actions.popleft())
@@ -64,7 +66,7 @@ class Oracle(object):
             self.logger.error("Could not contact the database : %s", e)
         finally:
             self.__close()
-    
+
     def __execute(self, action):
         if not self.config.isMock():
             self.logger.debug("Executing query")
@@ -74,7 +76,7 @@ class Oracle(object):
         self.logger.debug("Contacting the database...")
         # try to connect a couple of times
         while self.connectionAttempts < self.MAX_CONNECT_TRIES:
-            try :
+            try:
                 self.connection = cx_Oracle.connect(*self.config.getConnectionParam())
                 self.connectionAttempts = 0
                 break
@@ -89,7 +91,7 @@ class Oracle(object):
                     self.logger.info("Trying to connect once more %s/%s", self.connectionAttempts, self.MAX_CONNECT_TRIES)
 
         self.logger.debug("Connected to database")
-        
+
     def __close(self):
         try:
             if self.connection is not None and self.connectionAttempts == 0:
@@ -124,11 +126,11 @@ class Oracle(object):
             
             """
             if (userName is None
-                    or password is None
-                    or hostName is None
-                    or sid is None):
+                or password is None
+                or hostName is None
+                or sid is None):
                 raise Exception("A connection parameter is missing")
-        
+
             if port is None:
                 port = self.DEFAULT_DB_PORT
             self.__port = port
@@ -146,7 +148,7 @@ class Oracle(object):
             return cx_Oracle.makedsn(self.__hostName, self.__port, self.__sid)
 
         def getConnectionParam(self):
-            return (self.__userName, self.__password, self.getDsn())
+            return self.__userName, self.__password, self.getDsn()
 
         def isMock(self):
             return self.__mock

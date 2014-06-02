@@ -1,27 +1,29 @@
-'''
+"""
 Generic container for monitoring purposes
 
-Warning : the protected fields (__field) makes it impossible for the children to have access 
+Warning : the protected fields (__field) makes it impossible for the children to have access
 to the parent's fields
 
-'''
+"""
 
 __all__ = ['ServerData', 'TimeMonitoredUser']
 import datetime
 
+
 class BaseUser(object):
     def __init__(self, uid = 'NONE'):
         self.__uid = uid.upper()
-        
+
     def getUid(self):
         return self.__uid
-    
+
     def setUid(self, uid):
         if self.__uid == 'NONE' or self.__uid is None:
             self.__uid = uid.upper()
-            
+
+
 class User(BaseUser):
-    def __init__(self, uid = 'NONE', name = None , mail = None):
+    def __init__(self, uid = 'NONE', name = None, mail = None):
         BaseUser.__init__(self, uid)
         self._name = name
         self._mail = mail
@@ -40,6 +42,7 @@ class User(BaseUser):
     def __str__(self):
         return "%s;%s;%s" % (self.getUid(), self._name, self._mail)
 
+
 class _FlexUser(object):
     def __init__(self, machine, server):
         self.__machine = machine
@@ -56,6 +59,7 @@ class _FlexUser(object):
 
     def updateMachine(self, machine):
         self.__machine = machine
+
 
 class _TimedUser(object):
     def __init__(self):
@@ -118,6 +122,7 @@ class _TimeMonitoredUser(_TimedUser):
         self.__banned = False
         self.__warned = False
 
+
 class FlexTimedUser(BaseUser, _TimedUser, _FlexUser):
     def __init__(self, uid, machine, server):
         BaseUser.__init__(self, uid)
@@ -130,6 +135,7 @@ class FlexTimedUser(BaseUser, _TimedUser, _FlexUser):
 
     def setIncrement(self, increment):
         self.__increment = increment
+
 
 class TimeMonitoredUser(User, _TimeMonitoredUser):
     def __init__(self, uid = 'NONE', name = None, mail = None):
@@ -185,7 +191,7 @@ class ServerData(object):
         user = user.upper()
         oUser = self.getUserByUid(user)
         # user not known in current db
-        if oUser is None :
+        if oUser is None:
             oUser = FlexTimedUser(uid = user, machine = userHostName, server = server)
             oUser.resetUsageTime()
             increment = dumpDate - loginDate
@@ -193,7 +199,7 @@ class ServerData(object):
         else:
             # user already known
             # we haven't seen the user on the last dump (he was not connected)
-            if self._lastDumpDate != None and oUser.getLastUpdate() < self._lastDumpDate:
+            if self._lastDumpDate is not None and oUser.getLastUpdate() < self._lastDumpDate:
                 oUser.setLastUpdate(loginDate)
 
             increment = dumpDate - oUser.getLastUpdate()
@@ -201,9 +207,9 @@ class ServerData(object):
             # if the user is logged twice or more on the same server, we apply a default value for
             # for the increment (adding to the old increment)
             if oUser.getLastUpdate() == dumpDate:
-                if self._lastDumpDate is None :
+                if self._lastDumpDate is None:
                     delta = dumpDate - loginDate
-                else :
+                else:
                     delta = dumpDate - self._lastDumpDate
                 increment = oUser.getIncrement() + delta
 
@@ -240,4 +246,5 @@ class ServerData(object):
         usage = ""
         for user in self.userUsage:
             usage += "%s\n" % (user,)
-        return "Server data for host %s at : %s, %s/%s licenses\nUser statistics : \n%s" % (self.hostname, self.lastDump, self.usedLicenses, self.totalLicenses, usage)
+        return "Server data for host %s at : %s, %s/%s licenses\nUser statistics : \n%s" % (
+        self.hostname, self.lastDump, self.usedLicenses, self.totalLicenses, usage)

@@ -1,18 +1,19 @@
-'''Module to communicate things to whoever with whatever channel
+"""Module to communicate things to whoever with whatever channel
 
 Currently implemented channels are mail, ...
 
 @author: sbx1756
 
-'''
+"""
 __all__ = ['Mailer']
 
 from threading import Thread
 from Queue import Queue
 from email.message import Message
-from smtplib import SMTP, SMTPServerDisconnected
+from smtplib import SMTP
 import socket
 import logging
+
 
 class Mailer(Thread):
     """Sends mail via SMTP (in another thread)
@@ -67,21 +68,21 @@ class Mailer(Thread):
     def sendMail(self, mail):
         """Sends an Email"""
         if self.config.doSend():
-            try :
+            try:
                 self.logger.debug("Trying to send mail : '%s' to user %s", mail['Subject'], mail['To'])
                 mail['From'] = "%s <%s>" % (self.config.getFromName(), self.config.getFromAddr())
                 # TODO : put a timeout ?
                 self.transport = SMTP(host = self.config.getHost(), port = self.config.getPort(), timeout = self.config.getConnectionTimeout())
                 if self.config.isMock():
-                    self.transport.sendmail(self.config.getFromAddr(), ["francois.espinet@valeo.com", "rudolf.widmann@valeo.com"], mail.as_string())
-                else :
+                    self.transport.sendmail(self.config.getFromAddr(), ["test@test.com", "test2@test.com"], mail.as_string())
+                else:
                     self.transport.sendmail(self.config.getFromAddr(), mail["To"], mail.as_string())
 
                 self.logger.info("Mail sent to : %s", mail['To'])
-            except Exception as e :
+            except Exception as e:
                 self.logger.warning("Error while sending mail : %s", e)
             finally:
-                if self.transport is not None :
+                if self.transport is not None:
                     self.transport.quit()
 
         else:
@@ -92,9 +93,9 @@ class Mailer(Thread):
         self.logger.info("Mailer started")
         while self.isRunning:
             mail = self.mailQueue.get()
-            if mail is not None :
+            if mail is not None:
                 self.logger.debug("Got a new mail to send")
-                try :
+                try:
                     self.sendMail(mail)
                 except Exception as e:
                     self.logger.critical("A exception occured while sending an email : %s", e)
@@ -114,10 +115,10 @@ class Mailer(Thread):
         """Configuration information for the mailer"""
 
         DEFAULT_FROM_NAME = "Script management"
-        DEFAULT_SMTP_HOST = "BIE2-smtpserver.vnet.valeo.com"
+        DEFAULT_SMTP_HOST = "smtp.test.com"
         DEFAULT_SMTP_PORT = 25
         DEFAULT_SMTP_TIMEOUT = socket._GLOBAL_DEFAULT_TIMEOUT
-        DEFAULT_ADMIN_ADDRS = ["rudolf.widmann@valeo.com"]
+        DEFAULT_ADMIN_ADDRS = ["admin@test.com"]
 
         def __init__(self,
                      fromAddr,
@@ -142,11 +143,11 @@ class Mailer(Thread):
             actionLogger - an instance of a logger, if None, root logger is used
             
             """
-            fromName = self.DEFAULT_FROM_NAME
-            smtpHost = self.DEFAULT_SMTP_HOST
-            smtpPort = self.DEFAULT_SMTP_PORT
-            smtpTimeout = self.DEFAULT_SMTP_TIMEOUT
-            adminAddrs = self.DEFAULT_ADMIN_ADDRS
+            if fromName is None: fromName = self.DEFAULT_FROM_NAME
+            if smtpHost is None: smtpHost = self.DEFAULT_SMTP_HOST
+            if smtpPort is None : smtpPort = self.DEFAULT_SMTP_PORT
+            if smtpTimeout is None : smtpTimeout = self.DEFAULT_SMTP_TIMEOUT
+            if adminAddrs is None : adminAddrs = self.DEFAULT_ADMIN_ADDRS
 
             self.__fromAddrs = fromAddr
             self.__fromName = fromName
@@ -174,7 +175,7 @@ class Mailer(Thread):
             return self.__smtpPort
 
         def getConnectionTimeout(self):
-            self.__smtpTimeout
+            return self.__smtpTimeout
 
         def getAdminAddrs(self):
             return self.__adminAddrs
