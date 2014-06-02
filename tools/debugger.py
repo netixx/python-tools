@@ -16,7 +16,7 @@ def getAllStacks():
 
 def strStacks():
     out = "\n*** STACKTRACE - START ***\n"
-    out += "".join(getAllStacks())
+    out += "\n".join(getAllStacks())
     out += "\n*** STACKTRACE - END ***\n"
     return out
 
