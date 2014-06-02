@@ -43,15 +43,19 @@ class FlexLmManager(object):
         assert os.path.isfile(self.config.flexPath), "FlexLM tools not found at " + self.config.flexPath
         self.lmRestartCommands = []
         self.hostMonitors = {}
-        snapshotLock = RLock();
+        snapshotLock = RLock()
         for shost in config.hostToMonitor:
             host = shost.upper()
-            cmd = self.STAT_COMMAND_TEMPLATE.format(flexPath = self.config.flexPath, host = shost, featureName = self.config.featureName, port = self.config.flexPort)
-            self.hostMonitors[host] = self.ServerMonitor(ServerData(host), cmd, self.config.featureName, self.config.logger, snapshotLock, self.config.snapshotLogger)
+            cmd = self.STAT_COMMAND_TEMPLATE.format(flexPath = self.config.flexPath, host = shost, featureName = self.config.featureName,
+                                                    port = self.config.flexPort)
+            self.hostMonitors[host] = self.ServerMonitor(ServerData(host), cmd, self.config.featureName, self.config.logger, snapshotLock,
+                                                         self.config.snapshotLogger)
             self.hostMonitors[host].start()
 
-        self.lmRestartCommands.append('"%s" lmdown -c %s@%s -vendor %s -q' % (self.config.flexPath, self.config.flexPort, self.config.currentHost, self.config.vendor))
-        self.lmRestartCommands.append('"%s" lmreread -c %s@%s -vendor %s' % (self.config.flexPath, self.config.flexPort, self.config.currentHost, self.config.vendor))
+        self.lmRestartCommands.append(
+            '"%s" lmdown -c %s@%s -vendor %s -q' % (self.config.flexPath, self.config.flexPort, self.config.currentHost, self.config.vendor))
+        self.lmRestartCommands.append(
+            '"%s" lmreread -c %s@%s -vendor %s' % (self.config.flexPath, self.config.flexPort, self.config.currentHost, self.config.vendor))
 
         self._numberUsages = {}
         self._userData = {}
@@ -84,7 +88,8 @@ class FlexLmManager(object):
         
         Test is done by searching for the feature lines and seeing if total licens issued is greater than 0
         """
-        cmd = self.STAT_COMMAND_TEMPLATE.format(flexPath = self.config.flexPath, host = shost, featureName = self.config.featureName, port = self.config.flexPort)
+        cmd = self.STAT_COMMAND_TEMPLATE.format(flexPath = self.config.flexPath, host = shost, featureName = self.config.featureName,
+                                                port = self.config.flexPort)
         result = Console.sendCommand(cmd)
         ok = re.compile(r"Users of .*?Total of (\d+) licenses issued.*?Total of (\d+) licenses in use.*")
         for line in result.getResult().splitlines():
@@ -94,7 +99,7 @@ class FlexLmManager(object):
                 if int(res.group(1)) > 0:
                     return True
                 else:
-                    self.config.logger.warning("Status line found but number of issued is not strictly positive : %s", line);
+                    self.config.logger.warning("Status line found but number of issued is not strictly positive : %s", line)
         return False
 
     def monitorLicense(self):
@@ -105,7 +110,7 @@ class FlexLmManager(object):
             self.lastDumpDate = oMonitor.data.lastDump
             activeUsersNum += oMonitor.lastScannedUsers
         # end loop servers
-        self.config.logger.info("Application : %s has %3d active users" , self.config.featureName, activeUsersNum)
+        self.config.logger.info("Application : %s has %3d active users", self.config.featureName, activeUsersNum)
 
     def reloadServer(self):
         """Reload the license server through lmdow and lmreread, use with caution
@@ -115,7 +120,7 @@ class FlexLmManager(object):
         self.config.logger.info("Reloading server")
         for command in self.lmRestartCommands:
             self.config.logger.debug("Sending command %s", command)
-            if not self.config.mock :
+            if not self.config.mock:
                 result = Console.sendCommand(command)
                 if result.hasErrors():
                     self.config.logger.warning("Reloading command terminated with errors : %s", result.getErrors())
@@ -135,12 +140,12 @@ class FlexLmManager(object):
         stopResult = Console.sendCommand('net stop "%s"' % self.config.flexServiceName)
         if stopResult.hasErrors():
             self.config.logger.warning("Stop command terminated with errors : %s", stopResult.getErrors())
-        else :
+        else:
             self.config.logger.info("Service stop successful")
         startResult = Console.sendCommand('net start "%s"' % self.config.flexServiceName)
         if startResult.hasErrors():
             self.config.logger.warning("Restart command terminated with errors : %s", startResult.getErrors())
-        else :
+        else:
             self.config.logger.info("Service start successful")
         self.logSaver.mergeLastLogs()
 
@@ -182,7 +187,7 @@ class FlexLmManager(object):
             groupName = FlexLmManager.flexlmExcludeGroup
         if len(userList) > 0:
             ret = "GROUPCASEINSENSITIVE ON\n"
-            ret += "GROUP %s %s\n" % (groupName, " ".join(userList));
+            ret += "GROUP %s %s\n" % (groupName, " ".join(userList))
             ret += "EXCLUDE DOORS GROUP %s\n" % groupName
             return ret
         return ""
@@ -212,7 +217,7 @@ class FlexLmManager(object):
         def monitor(self):
             """Monitor the server once (gets the data)"""
             self.__resultCollected.clear()
-#             self._serverData.resetUsage()
+            # self._serverData.resetUsage()
             if not self._monitorEvent.is_set():
                 self._monitorEvent.set()
 
@@ -240,7 +245,8 @@ class FlexLmManager(object):
             """
             # Flexible License Manager status on Tue 12/4/2012 07:49
             licDatePattern = re.compile(r"\s*{startLine}.+?(\d+/\d+/\d+\s\d+:\d+)\s*".format(startLine = r"Flexible License Manager status on"))
-            totalPattern = re.compile(r"Users of {featureName}.*?Total of (\d+) licenses issued.*?Total of (\d+) licenses in use.*".format(featureName = self._featureName))
+            totalPattern = re.compile(
+                r"Users of {featureName}.*?Total of (\d+) licenses issued.*?Total of (\d+) licenses in use.*".format(featureName = self._featureName))
             userDataPattern = re.compile(r"\s+([\w.-]+)\s+([\w-]+)\s+([\w-]+?)\s+([\w -]*)\(.+\)\s\(.+\), start \w+ (\d+/\d+\s\d+:\d+)\s*")
             featureLinePattern = re.compile(r"Users of\s.*")
             while self.isRunning:
@@ -286,14 +292,15 @@ class FlexLmManager(object):
                             if userMatch is not None:
                                 # add the year found in the dump date because startUsageTimeStr has no year
                                 loginDate = datetime.strptime(str(dumpDate.year) + "/" + userMatch.group(5), "%Y/%m/%d %H:%M")
-                                self._serverData.addUsage(dumpDate, userMatch.group(1), loginDate , userMatch.group(3), userMatch.group(2))
+                                self._serverData.addUsage(dumpDate, userMatch.group(1), loginDate, userMatch.group(3), userMatch.group(2))
                                 relevantLines.append(lineCounter)
                             featureLine = featureLinePattern.match(singleLine)
                             if featureLine is not None:
                                 feature = False
                                 break
                 # end loop dumplines
-                self.logger.info("Total licenses read for host %s : %s/%s", self._serverData.hostname, self._serverData.usedLicenses, self._serverData.totalLicenses)
+                self.logger.info("Total licenses read for host %s : %s/%s", self._serverData.hostname, self._serverData.usedLicenses,
+                                 self._serverData.totalLicenses)
                 self._serverData.lastDump = dumpDate
                 self._monitorEvent.clear()
                 self.__resultCollected.set()
@@ -302,7 +309,7 @@ class FlexLmManager(object):
                     for lineNum in relevantLines:
                         self._snapshotLogger.info(dumpLines[lineNum])
                     self._snapshotLogger.info("End of dump")
-            # end while
+                    # end while
 
         @property
         def data(self):
@@ -317,18 +324,19 @@ class FlexLmManager(object):
 
     class Configuration(object):
         """Configuration Data for the FlexLmMonitor"""
+
         def __init__(self,
-             currentHost,
-             hostToMonitor,
-             featureName,
-             flexPath,
-             flexVendor,
-             flexOptFileName = None,
-             flexPort = None,
-             flexServiceName = None,
-             logger = logging.getLogger(),
-             snapshotLogger = logging.getLogger(),
-             mock = False):
+                     currentHost,
+                     hostToMonitor,
+                     featureName,
+                     flexPath,
+                     flexVendor,
+                     flexOptFileName = None,
+                     flexPort = None,
+                     flexServiceName = None,
+                     logger = logging.getLogger(),
+                     snapshotLogger = logging.getLogger(),
+                     mock = False):
             """Creates a new Configuration
             currentHost - host (string) on which the script is running (for restarts)
             hostToMonitors - array of address strings to monitor
@@ -347,7 +355,7 @@ class FlexLmManager(object):
                 flexOptFileName = flexVendor + FlexLmManager.DEFAULT_FLEX_OPTFILE_EXT
             if flexPort is None:
                 flexPort = FlexLmManager.DEFAULT_FLEX_PORT
-            if flexServiceName is None :
+            if flexServiceName is None:
                 flexServiceName = FlexLmManager.DEFAULT_FLEX_SERVICENAME
 
             self._currentHost = currentHost
@@ -369,19 +377,19 @@ class FlexLmManager(object):
         @property
         def currentHost(self):
             return self._currentHost
-        
+
         @property
         def hostToMonitor(self):
             return self._hostToMonitor
-        
+
         @property
         def featureName(self):
             return self._featureName
-        
+
         @property
         def flexPath(self):
             return self._flexPath
-        
+
         @property
         def flexPort(self):
             return self._flexPort
@@ -393,11 +401,11 @@ class FlexLmManager(object):
         @property
         def flexServiceName(self):
             return self._flexServiceName
-        
+
         @property
         def logger(self):
             return self._logger
-        
+
         @property
         def snapshotLogger(self):
             return self._snapshotLogger
@@ -417,7 +425,7 @@ class LogSaver(object):
     NOTE:Works only in windows
     
     """
-    
+
     def __init__(self, logSaveDir, logFilePath, logger = logging.getLogger()):
         """Create a new logSaver
         logSaveDir - directory to save the backups
@@ -475,5 +483,5 @@ class LogSaver(object):
                                                                                                         tempLog))
         if result.hasErrors():
             self.logger.warning("Error while merging logs : %s", result.getErrors())
-        else :
+        else:
             self.logger.info("Logs merged successfully")

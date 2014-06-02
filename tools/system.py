@@ -1,16 +1,18 @@
-'''Module providing a shell interface to execute commands as well as other environment related features
+"""Module providing a shell interface to execute commands as well as other environment related features
 
-'''
+"""
 
 __all__ = ['Console', 'DirectoryManager']
 
 from subprocess import Popen, PIPE
 import re
 
+
 class Console(object):
     """
     Object to send commands to the shell (in a subprocess)
     """
+
     @staticmethod
     def sendCommand(command, sendExtraLine = False):
         """Sends a command to the console
@@ -34,6 +36,7 @@ class Console(object):
 
     class Result(object):
         """Represents a Result from a command"""
+
         def __init__(self, returnCode, result, errors):
             self.__returnCode = returnCode
             self.__result = result
@@ -59,6 +62,7 @@ class Console(object):
 
 class DirectoryManager(object):
     """Class to query the windows directory service"""
+
     @staticmethod
     def getUserEmailByUid(uid):
         """Get the user email (registered as upn...) from the windows directory
@@ -74,7 +78,7 @@ class DirectoryManager(object):
         pattern = re.compile(r"\s*upn:\s*([^\s]+)")
         for singleLine in ret:
             lineMatch = pattern.match(singleLine)
-            if lineMatch != None:
+            if lineMatch is not None:
                 return lineMatch.group(1)
 
         return None

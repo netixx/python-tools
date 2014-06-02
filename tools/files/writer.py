@@ -1,13 +1,15 @@
-'''
+"""
 Module to write data to files in a orderly fashion
 
-'''
+"""
 
 from csv import DictWriter
 import csv
 from .definitions import ObjectWriter, TupleWriter, ListWriter
 
+
 __all__ = ['StructuredWriter', 'TsvWriter', 'CsvWriter']
+
 
 class StructuredWriter(object):
     """Write sets of data to a file, given the dialect
@@ -16,6 +18,7 @@ class StructuredWriter(object):
     dialect - format of the output (see csv module)
     
     """
+
     def __init__(self, filename, container = None, dialect = 'simplecsv'):
         self._container = None
         if isinstance(container, ObjectWriter):
@@ -26,7 +29,7 @@ class StructuredWriter(object):
             self._container = container
             self._writer = csv.writer(filename, dialect = dialect)
             self.fieldnames = container.columns
-        else :
+        else:
             raise Exception("Given writer is not valid")
 
     def writerows(self, datas):
@@ -46,9 +49,11 @@ class StructuredWriter(object):
     def __iter__(self):
         return self
 
+
 class CsvWriter(StructuredWriter):
     def __init__(self, fileObj, container = None):
         StructuredWriter.__init__(self, fileObj, container, dialect = 'simplecsv')
+
 
 class TsvWriter(StructuredWriter):
     def __init__(self, fileObj, container = None):

@@ -1,18 +1,20 @@
-'''Module to read diverse format of structured files
+"""Module to read diverse format of structured files
 
 Module based on the csv module (with tweaks)
 
-Container can be used to put results in objects, list or tuples, with or without constraints 
+Container can be used to put results in objects, list or tuples, with or without constraints
 
 See tests (in __main__) for more detailed examples
 
-'''
+"""
 
 __all__ = ['TsvReader', 'CsvReader', 'StructuredReader']
 
 from csv import DictReader
 import csv
 from .definitions import ObjectContainer, TupleContainer, ListContainer
+
+
 
 class StructuredReader(object):
     def __init__(self, filename, container = None, dialect = 'simplecsv'):
@@ -23,7 +25,7 @@ class StructuredReader(object):
         elif isinstance(container, TupleContainer) or isinstance(container, ListContainer):
             self._container = container
             self._reader = csv.reader(filename, dialect = dialect)
-        else :
+        else:
             raise Exception("Given container is not valid")
 
     def next(self):
@@ -33,21 +35,23 @@ class StructuredReader(object):
 
         row = self._reader.next()
         return self._container.fetch(row)
-            
+
 
     def __iter__(self):
         return self
 
+
 class CsvReader(StructuredReader):
     def __init__(self, fileObj, container = None):
         StructuredReader.__init__(self, fileObj, container, dialect = 'simplecsv')
+
 
 class TsvReader(StructuredReader):
     def __init__(self, fileObj, container = None):
         StructuredReader.__init__(self, fileObj, container, dialect = 'simpletsv')
 
 # class Reader(object):
-#     def __init__(self, filename, resultContainer = None):
+# def __init__(self, filename, resultContainer = None):
 #         '''Create a new file reader
 #
 #         filename - path to the file to read
@@ -115,4 +119,3 @@ class TsvReader(StructuredReader):
 #             match = r"[^%s]" % self.getCommentCharacter() + match
 #
 #         return re.compile(match)
-
